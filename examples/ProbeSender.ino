@@ -25,14 +25,14 @@ int light;
 
 uint8_t sensorData[6] = {device, voltage, temperature, humidity, pressure, light};
 uint8_t sensorType[6] = {device, 6, 16, 26, 36, 46}; // Change last 4 bytes according to sensot type used.
-// Predefined sensor type table is below:
+// Predefined sensor types table is below:
 // volatage = 6, temperature = 16, humidity= 26, pressure= 36, light= 46, OpenClose = 56,
 // level = 66, presence = 76, motion = 86 etc.
 
 //uint8_t securityCode[6] = {0x36, 0x33, 0x33, 0x33, 0x33, 0x33}; // Security code must be same at controller to compare.
-
+int receivedDevice;
 int receivedCommand;  // digitalwrite, analogwrite, pin setup etc.
-int pin;              // gpio pin number 1 to 16
+int pinNumber;              // gpio pin number 1 to 16
 int pinValue;         // 0 or 1 in case of digitalwrte or 0 to 255 in case of analogwrite.
 int setSleeptime;  // 0 to 255 command to set sleep time variable in minutes for this device.
 int setDefines;    // Set Defines (whether to run ertain code to run WiFi & OTA options etc.).
@@ -51,8 +51,9 @@ unsigned long passedMillis;
 //============Do not need user configuration from here on============================
 
 void setup() {
+  
   // WiFi.disconnect();
-  WiFi.scanDelete();
+ // WiFi.scanDelete();
   Serial.begin(115200);
  /*
   wifi_set_macaddr(STATION_IF, securityCode);
@@ -61,7 +62,7 @@ void setup() {
   Serial.println(WiFi.macAddress());
   */
   wifi_set_macaddr(STATION_IF, sensorType);
-  probeRequest();
+   probeRequest();
   Serial.print("sensorType values sent to controller: ");
   Serial.println(WiFi.macAddress());
   
@@ -73,7 +74,10 @@ void setup() {
 #if DUPLEX
   delay(60);  // Minimum 60 milliseonds delay required to receive message from controller reliably.
 
-  if (WiFi.BSSIDstr(0)[16] == '1')  {   //match last digit of gateway's mac id with this devices's ID here.
+  receivedDevice = WiFi.BSSID(0)[0];
+  
+//  if (WiFi.BSSIDstr(0)[16] == '1')  {   //match last digit of gateway's mac id with this devices's ID here.
+  if (receivedDevice == device)  {   //match first byte of gateway's mac id with this devices's ID here.
 
     Serial.println();
     Serial.print("This Device MAC ID is: ");
@@ -88,32 +92,35 @@ void setup() {
     Serial.println(WiFi.macAddress());
     Serial.print("Message received from Controller is: ");
     Serial.println(&WiFi.BSSIDstr(0)[0]);
-
-    if (WiFi.BSSIDstr(0)[0] == '0')  {
-      Serial.print("GPIO,");
-      Serial.print(ledPin);
-      Serial.print(",");
-      Serial.println(WiFi.BSSIDstr(0)[15]);
-    }
-
-    if (WiFi.BSSIDstr(0)[16] == '1')  {
-      Serial.println("I will wake up next time with WiFi, OTA enabled and deepsleep disabled");
-      Serial.println("Define some features here to activate wifi  & disable deepsleep when unit wakes up next time then restart the ESP.");
-      // ESP.restart();
-    }
-
-
+    
+    uint8_t* receivedData[6]=  {WiFi.BSSID(0)};
+   
+    receivedDevice = WiFi.BSSID(0)[0];
+    Serial.println(receivedDevice);
+    receivedCommand = WiFi.BSSID(0)[1];
+    Serial.println(receivedCommand);
+    pinNumber = WiFi.BSSID(0)[2];
+    Serial.println(pinNumber);
+    pinValue = WiFi.BSSID(0)[3];
+    Serial.println(pinValue);
+    setSleeptime = WiFi.BSSID(0)[4];
+    Serial.println(setSleeptime);
+    setDefines = WiFi.BSSID(0)[5];
+    Serial.println(setDefines);
+  
+   
+      
+     
   } else {
     Serial.println("Message from controller did not arrive, let me try again to get message data........................................");
     ESP.restart();
 
-  }
+   }
 
-  
 #endif
 
   delay(1);
-
+  
   WiFi.hostname("Livingroom");
   Serial.println();
 }
@@ -126,6 +133,58 @@ void loop() {
 
   //  probeRequest();
   //  yield();
+   #if DUPLEX
+ 
+   if (pinNumber >= 0 && pinNumber <= 5)   {
+     
+     if (pinValue >= 2 && pinValue <= 256) { 
+     
+      Serial.print("analogWrite");
+      Serial.print("(");
+      Serial.print(pinNumber);
+      Serial.print(",");
+      Serial.print(pinValue);
+      Serial.println(");");
+      Serial.println();
+      Serial.println();
+      
+        } else if (pinValue == 0 || pinValue == 1)  {
+   
+      Serial.print("digitalWrite");
+      Serial.print("(");
+      Serial.print(pinNumber);
+      Serial.print(",");
+      Serial.print(pinValue);
+      Serial.println(");");
+      Serial.println();
+      Serial.println();
+        }
+    } else if (pinNumber >= 11 && pinNumber <= 16) {
+        
+      if (pinValue >= 2 && pinValue <= 256) { 
+     
+      Serial.print("analogWrite");
+      Serial.print("(");
+      Serial.print(pinNumber);
+      Serial.print(",");
+      Serial.print(pinValue);
+      Serial.println(");");
+      Serial.println();
+      Serial.println();
+      
+        } else if (pinValue == 0 || pinValue == 1)  {
+    
+      Serial.print("digitalWrite");
+      Serial.print("(");
+      Serial.print(pinNumber);
+      Serial.print(",");
+      Serial.print(pinValue);
+      Serial.println(");");
+      Serial.println();
+      Serial.println();
+        }
+    }
+    #endif
 
   Serial.print("Total time I spent before going to sleep: ");
   Serial.println(millis());
