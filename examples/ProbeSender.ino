@@ -37,7 +37,7 @@ int pinValue;         // 0 or 1 in case of digitalwrte or 0 to 255 in case of an
 int setSleeptime;  // 0 to 255 command to set sleep time variable in minutes for this device.
 int setDefines;    // Set Defines (whether to run ertain code to run WiFi & OTA options etc.).
 
-int ledPin = 12;
+//int ledPin = 12;
 //int lowVolt = 0;
 //int highVolt = 330;   // highest voltage of battery used multiply by 100.
 int warnVolt = 130;    // Start warning when battery level goes below 2.60 volts (260/2 = 130).
@@ -61,7 +61,8 @@ void setup() {
   Serial.print("Security Code sent to controller: ");
   Serial.println(WiFi.macAddress());
   */
-  wifi_set_macaddr(STATION_IF, sensorType);
+  
+   wifi_set_macaddr(STATION_IF, sensorType);
    probeRequest();
   Serial.print("sensorType values sent to controller: ");
   Serial.println(WiFi.macAddress());
@@ -78,7 +79,7 @@ void setup() {
   
 //  if (WiFi.BSSIDstr(0)[16] == '1')  {   //match last digit of gateway's mac id with this devices's ID here.
   if (receivedDevice == device)  {   //match first byte of gateway's mac id with this devices's ID here.
-
+    
     Serial.println();
     Serial.print("This Device MAC ID is: ");
     Serial.println(WiFi.macAddress());
@@ -90,30 +91,32 @@ void setup() {
     Serial.println(WiFi.channel(0));
     Serial.print("Message sent to Controller is: ");
     Serial.println(WiFi.macAddress());
-    Serial.print("Message received from Controller is: ");
+    Serial.print("Message received from Controller (HEX format)is: ");
     Serial.println(&WiFi.BSSIDstr(0)[0]);
     
     uint8_t* receivedData[6]=  {WiFi.BSSID(0)};
-   
+    Serial.print("Message (DEC format): ");
     receivedDevice = WiFi.BSSID(0)[0];
-    Serial.println(receivedDevice);
+    Serial.print(receivedDevice);
     receivedCommand = WiFi.BSSID(0)[1];
-    Serial.println(receivedCommand);
+    Serial.print(":");
+    Serial.print(receivedCommand);
     pinNumber = WiFi.BSSID(0)[2];
-    Serial.println(pinNumber);
+    Serial.print(":");
+    Serial.print(pinNumber);
     pinValue = WiFi.BSSID(0)[3];
-    Serial.println(pinValue);
+    Serial.print(":");
+    Serial.print(pinValue);
     setSleeptime = WiFi.BSSID(0)[4];
-    Serial.println(setSleeptime);
+    Serial.print(":");
+    Serial.print(setSleeptime);
     setDefines = WiFi.BSSID(0)[5];
+    Serial.print(":");
     Serial.println(setDefines);
-  
    
-      
-     
   } else {
     Serial.println("Message from controller did not arrive, let me try again to get message data........................................");
-    ESP.restart();
+   // ESP.restart();
 
    }
 
@@ -123,6 +126,7 @@ void setup() {
   
   WiFi.hostname("Livingroom");
   Serial.println();
+  
 }
 
 // Setup ends here
