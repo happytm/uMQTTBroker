@@ -16,8 +16,8 @@
  * Your WiFi config here
  */
 char apssid[] = "ESP";   
-char ssid[] = "*****";     // your network SSID (name)
-char pass[] = "*****"; // your network password
+char ssid[] = "HTM1";     // your network SSID (name)
+char pass[] = "kb1henna"; // your network password
 //bool WiFiAP = false;      // Do yo want the ESP as AP?
 
 int device;
@@ -39,9 +39,6 @@ int sensorType3;
 int sensorType4;
 int sensorType5;
 
-
-//uint8_t probeData[] = {temperature, humidity, pressure, voltage, light, unit};
-
 char topic1[50];
 char topic2[50];
 char topic3[50];
@@ -49,15 +46,13 @@ char topic4[50];
 char topic5[50];
 char topic6[50];
 
-int command1;
-int command2;
-int command3;
-int command4;
-int command5;
-int command6;
+int command1 = 36;
+int command2 = 0;
+int command3 = 0;
+int command4 = 0;
+int command5 = 0;
+int command6 = 0;
 
-//uint8_t mac[6] = {19,01,25,30,01,01};
-//uint8_t mac[6] = {19,01,250,value4,value5,01};
 uint8_t mac[6] = {command1, command2, command3, command4, command5, command6};
 
 // ==================== end of TUNEABLE PARAMETERS ====================
@@ -85,11 +80,39 @@ public:
     }
     
     virtual void onData(String topic, const char *data, uint32_t length) {
+    
       char data_str[length+1];
       os_memcpy(data_str, data, length);
       data_str[length] = '\0';
       Serial.println("received topic '" + topic + (String)data_str);
+   /*  
+      char* sendCommand; 
+      char* rest = data_str; 
+      while ((sendCommand = strtok_r(rest, "/", &rest))) 
+   //   printf("%s\n", sendCommand); 
+ */
+ 
+ 
+
+      
+ if (topic == "send/")   {
+ 
+ command1 = atoi(&data[0]);  
+ Serial.println(command1);  
+ command2 = atoi(&data[3]); 
+ Serial.println(command2); 
+ command3 = atoi(&data[6]);  
+ Serial.println(command3);  
+ command4 = atoi(&data[9]);  
+ Serial.println(command4); 
+ command5 = atoi(&data[12]);  
+ Serial.println(command5);  
+ command6 = atoi(&data[15]);  
+ Serial.println(command6);
+
+}
     }
+        
 };
 
 myMQTTBroker myBroker;
@@ -152,8 +175,7 @@ void setup()
 
 void loop()
 {
-
- 
+     
 }
 
 
@@ -172,6 +194,9 @@ void mqttPublish()    {
  sprintf(topic4,"%s%i%s%i%s", "Sensordata/", device, "/", sensorType3, "/");
  sprintf(topic5,"%s%i%s%i%s", "Sensordata/", device, "/", sensorType4, "/");
  sprintf(topic6,"%s%i%s%i%s", "Sensordata/", device, "/", sensorType5, "/");
+
+ 
+
  
  // myBroker.publish(topic1, (String)device);
  // myBroker.publish("SensorData/device/", (String)device);
@@ -196,7 +221,7 @@ void onProbeRequest(const WiFiEventSoftAPModeProbeRequestReceived& dataReceived)
       }
    */
 
-  if (dataReceived.mac[1] == 16) // only accept data from device with voltage as a sensor type at byte 1.
+  if (dataReceived.mac[1] == 6) // only accept data from device with voltage as a sensor type at byte 1.
   {
     sensorType1 = (dataReceived.mac[1]);
     sensorType2 = (dataReceived.mac[2]);
@@ -256,12 +281,13 @@ void onProbeRequest(const WiFiEventSoftAPModeProbeRequestReceived& dataReceived)
 }
 
 void sendCommand()  {
-  command1 = 10;  //random(25);
-  command2 = 20;  //random(256);
-  command3 = 30;  //random(256);
-  command4 = 40;  //random(256);
+  /*
+  command1 = 36; //random(25);
+  command2 = random(16);
+  command3 = random(16);
+  command4 = random(4);
   command5 = random(256);
-  command6 = 01;
+  command6 = random(25); */
   mac[0] = command1;
   mac[1] = command2;
   mac[2] = command3;
@@ -269,6 +295,8 @@ void sendCommand()  {
   mac[4] = command5;
   mac[5] = command6;
 
+  
+  
   wifi_set_macaddr(SOFTAP_IF, mac);
 
 }
